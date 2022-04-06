@@ -1,0 +1,66 @@
+body {
+    padding: 50px;
+}
+
+.centered {
+    text-align: center;
+}
+
+.modal {
+    display: block;
+    opacity: 1;
+}
+
+.modal.fade .modal-dialog {
+    transform: none;
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 680px;
+        margin: 1.75rem auto;
+    }
+}
+
+.price {
+    position: absolute;
+    left: 20px;
+    font-size: 32px;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.element-line {
+    cursor: pointer;
+    position: relative;
+}
+
+.element-line:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.facture {
+    text-align: right;
+}
+
+.facture .left {
+    text-align: left;
+}
+
+.etudiant {
+    font-size: 20px;
+}
+
+.etudiant.selected {
+    font-weight: bold;
+}
+
+.etudiant label {
+    cursor: pointer;
+}
+
+.etudiant input {
+    cursor: pointer;
+}

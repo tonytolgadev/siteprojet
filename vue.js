@@ -1,0 +1,237 @@
+
+Vue.component('item-modal', {
+  props: ['item', 'close', 'save', 'index', 'remove'],
+  watch: {
+    'item.size': function (value) {
+      if (value === 'A3') {
+        this.item.reliure = '';
+      }
+    }
+  },
+  template: `
+      <div class="modal fade">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{index === -1 ? 'Ajouter' : 'Modifier'}}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+  
+              <div class="form-group row">
+                <label for="quantity" class="col-6 col-form-label">Nombre d'exemplaires</label>
+                <div class="col-6">
+                  <input class="form-control" type="number" v-model="item.quantity" id="quantity">
+                </div>
+              </div>
+  
+              <div class="form-group row"><div class="col-6">Pour chaque exemplaire :</div></div>
+  
+              <div class="form-group row">
+                <label for="colorPages" class="col-6 col-form-label">Pages Couleur</label>
+                <div class="col-6">
+                  <input class="form-control" type="number" v-model="item.colorPages" id="colorPages">
+                </div>
+              </div>
+  
+              <div class="form-group row">
+                <label for="bwPages" class="col-6 col-form-label">Pages Noir et Blanc</label>
+                <div class="col-6">
+                  <input class="form-control" type="number" v-model="item.bwPages" id="bwPages">
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="A4" v-model="item.size"> A4
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="A3" v-model="item.size"> A3
+                  </label>
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="" v-model="item.reliure"> Aucune
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="spiral" v-model="item.reliure" :disabled="item.size === 'A3'"> Spirales plastiques
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="doscarre" v-model="item.reliure" :disabled="item.size === 'A3'"> Dos carré collé
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="baguette" v-model="item.reliure" :disabled="item.size === 'A3'"> Baguette
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="radio" value="thermocolle" v-model="item.reliure" :disabled="item.size === 'A3'"> Thermocollée
+                  </label>
+                </div>
+              </div>
+  
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" @click="save">{{ index === -1 ? 'Ajouter' : 'Modifier'}}</button>
+  <button type="button" class="btn btn-danger" @click="remove" v-if="index >= 0">Supprimer</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="close">Annuler</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+});
+
+new Vue({
+  el: '#app',
+  data: {
+    items: [],
+    current: null,
+    index: -1,
+    student: false
+  },
+  filters: {
+    price(value) {
+      return value.toFixed(2);
+    },
+    reliureRead(reliure) {
+      switch (reliure) {
+        case 'spiralS':
+          return "spirales plastiques S";
+        case 'spiralM':
+          return "spirales plastiques M";
+        case 'spiralL':
+          return "spirales plastiques L";
+        case 'doscarre':
+          return "dos carré collée";
+        case 'baguette':
+          return "baguette";
+        case 'thermocolle':
+          return "thermocollée";
+      }
+    },
+  },
+  computed: {
+    colorA4Qty() {
+      return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+    },
+    colorA4UnitPrice() {
+      let qty = this.colorA4Qty;
+      return qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38;
+    },
+    bwA4Qty() {
+      return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+    },
+    bwA4UnitPrice() {
+      let qty = this.bwA4Qty;
+      return qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10;
+    },
+    colorA3Qty() {
+      return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+    },
+    colorA3UnitPrice() {
+      let qty = this.colorA3Qty;
+      return 2 * (qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38);
+    },
+    bwA3Qty() {
+      return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+    },
+    bwA3UnitPrice() {
+      let qty = this.bwA3Qty;
+      return 2 * (qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10);
+    },
+    reliureList() {
+      return this.items.reduce((acc, i) => {
+        let reliure = this.getReliure(i);
+        if (!reliure) { return acc; }
+        if (acc[reliure]) {
+          acc[reliure] += parseInt(i.quantity, 10);
+        } else {
+          acc[reliure] = parseInt(i.quantity, 10);
+        }
+        return acc;
+      }, {});
+    },
+    subTotal() {
+      return this.colorA4Qty * this.colorA4UnitPrice +
+        this.bwA4Qty * this.bwA4UnitPrice +
+        this.colorA3Qty * this.colorA3UnitPrice +
+        this.bwA3Qty * this.bwA3UnitPrice +
+        Object.keys(this.reliureList).reduce((acc, r) => acc + (this.reliureUnitPrice(r) * this.reliureList[r]), 0);
+    },
+    total() {
+      return this.student ? this.subTotal * 0.8 : this.subTotal;
+    }
+  },
+  methods: {
+    add() {
+      this.current = {
+        quantity: 1,
+        colorPages: 0,
+        bwPages: 0,
+        reliure: '',
+        size: 'A4'
+      }
+      this.index = -1;
+    },
+    modify(index) {
+      this.index = index;
+      this.current = Object.assign({}, this.items[index]);
+    },
+    close() {
+      this.current = null;
+    },
+    save() {
+      if (this.index < 0) {
+        this.items.push(this.current);
+      } else {
+        this.items[this.index] = Object.assign({}, this.current);
+        this.items.push({});
+        this.items.pop();
+      }
+      this.current = null;
+    },
+    remove() {
+      if (this.index < 0) { return; }
+      this.items.splice(this.index, 1);
+      this.current = null;
+    },
+    getReliure(item) {
+      if (item.reliure != 'spiral') {
+        return item.reliure;
+      }
+      let nbPages = parseInt(item.colorPages, 10) + parseInt(item.bwPages, 10);
+      return "spiral" + (nbPages < 50 ? 'S' : (nbPages >= 100 ? 'L' : 'M'));
+    },
+    reliureUnitPrice(reliure) {
+      switch (reliure) {
+        case 'spiralS':
+          return 3.5;
+        case 'spiralM':
+          return 4.5;
+        case 'spiralL':
+          return 8;
+        case 'doscarre':
+          return 14;
+        case 'baguette':
+          return 5;
+        case 'thermocolle':
+          return 8;
+      }
+    }
+  }
+})
