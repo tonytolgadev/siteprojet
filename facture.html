@@ -2,71 +2,135 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.1/animate.min.css">
-  <link rel="stylesheet" href="facture.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.3/css/bootstrap.css">
+    <link rel="stylesheet" href="facture.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
 </head>
 
 <body>
-  <div class="container" ng-app="invoice">
-    <!-- <section class="jumbotron">
-      <h1>AngularJS invoice example</h1>
-      <p>Createing simple invoice example by Amro Eldewiny - Arabic HTML</p>
-      <p>Add more invoice as you like.</p>
-    </section> -->
-    <section class="row" ng-controller="InvoiceController">
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Description</th>
-            <th>Quantité</th>
-            <th>Prix</th>
-            <th>Total</th>
-            <th>Supprimer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr ng-repeat="item in invoice.items">
-            <td><input type="text" ng-model="item.name" class="form-control" /></td>
-            <td><input type="text" ng-model="item.description" class="form-control" /></td>
-            <td><input type="number" ng-model="item.qty" class="form-control" /></td>
-            <td><input type="number" ng-model="item.price" class="form-control" /></td>
-            <td>{{item.qty * item.price}} €</td>
-            <td><button type="button" class="btn btn-danger" ng-click="remove($index)">Supprimer</button>
-            </td>
-          </tr>
-          <tr>
-            <td><button type="button" class="btn btn-primary" ng-click="add()">Ajouter une facture</button>
-            </td>
-            <td></td>
-            <td></td>
-            <td>Total : </td>
-            <td>{{total()}} €</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </div>
+    <div id="app">
+        <item-modal v-if="current" :item="current" :close="close" :save="save" :index="index" :remove="remove">
+        </item-modal>
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-4">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Désignation des éléments</th>
+                            <th>Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in items" class="element-line" @click="modify(index)">
+                            <td>
+                                <span v-if="item.colorPages > 0">{{item.colorPages}} Pages couleurs
+                                    {{item.size}}<br></span>
+                                <span v-if="item.bwPages > 0">{{item.bwPages}} Pages noir et blanc
+                                    {{item.size}}<br></span>
+                                <span v-if="item.reliure">Reliure {{getReliure(item) | reliureRead}}<br></span>
+                            </td>
+                            <td>
+                                {{item.quantity}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="centered">
+            <button type="button" class="btn btn-primary btn-ajouter" @click="add">Ajouter</button>
+        </div>
+
+        <br><br>
+
+        <!-- <div class="form-group centered etudiant" :class="{selected: student}">
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" v-model="student"> Tarif étudiant
+                </label>
+            </div>
+        </div> -->
+
+        <br>
+        <h2>Facture</h2>
+        <br>
+        <table class="table table-striped facture">
+            <thead>
+                <tr>
+                    <th class="left">Désignation des éléments</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Prix</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-if="colorA4Qty > 0">
+                    <td class="left">Pages couleurs A4</td>
+                    <td>{{colorA4Qty}}</td>
+                    <td>{{colorA4UnitPrice | price}} &euro;</td>
+                    <td>{{colorA4Qty * colorA4UnitPrice | price}} &euro;</td>
+                </tr>
+                <tr v-if="bwA4Qty > 0">
+                    <td class="left">Pages noir et blanc A4</td>
+                    <td>{{bwA4Qty}}</td>
+                    <td>{{bwA4UnitPrice | price}} &euro;</td>
+                    <td>{{bwA4Qty * bwA4UnitPrice | price}} &euro;</td>
+                </tr>
+                <tr v-if="colorA3Qty > 0">
+                    <td class="left">Pages couleurs A3</td>
+                    <td>{{colorA3Qty}}</td>
+                    <td>{{colorA3UnitPrice | price}} &euro;</td>
+                    <td>{{colorA3Qty * colorA3UnitPrice | price}} &euro;</td>
+                </tr>
+                <tr v-if="bwA3Qty > 0">
+                    <td class="left">Pages noir et blanc A3</td>
+                    <td>{{bwA3Qty}}</td>
+                    <td>{{bwA3UnitPrice | price}} &euro;</td>
+                    <td>{{bwA3Qty * bwA3UnitPrice | price}} &euro;</td>
+                </tr>
+                <tr v-for="(qty, reliure) in reliureList">
+                    <td class="left">Reliure {{reliure | reliureRead}}</td>
+                    <td>{{qty}}</td>
+                    <td>{{reliureUnitPrice(reliure) | price}} &euro;</td>
+                    <td>{{qty * reliureUnitPrice(reliure) | price}} &euro;</td>
+                </tr>
+                <tr v-if="student">
+                    <th colspan="3">Sous-total</th>
+                    <td>{{subTotal | price}} &euro;</td>
+                </tr>
+                <!-- <tr v-if="student">
+                    <th colspan="3">Réduction étudiant -20%</th>
+                    <td>-{{subTotal * 0.2 | price}} &euro;</td>
+                </tr> -->
+                <tr>
+                    <th colspan="3">Total</th>
+                    <td>{{total | price}} &euro;</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
 </body>
 <script>
 
-  Vue.component('item-modal', {
-    props: ['item', 'close', 'save', 'index', 'remove'],
-    watch: {
-      'item.size': function (value) {
-        if (value === 'A3') {
-          this.item.reliure = '';
-        }
-      }
-    },
-    template: `
+    Vue.component('item-modal', {
+        props: ['item', 'close', 'save', 'index', 'remove'],
+        watch: {
+            'item.size': function (value) {
+                if (value === 'A3') {
+                    this.item.reliure = '';
+                }
+            }
+        },
+        template: `
       <div class="modal fade">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
@@ -152,147 +216,148 @@
         </div>
       </div>
     `
-  });
+    });
 
-  new Vue({
-    el: '#app',
-    data: {
-      items: [],
-      current: null,
-      index: -1,
-      student: false
-    },
-    filters: {
-      price(value) {
-        return value.toFixed(2);
-      },
-      reliureRead(reliure) {
-        switch (reliure) {
-          case 'spiralS':
-            return "spirales plastiques S";
-          case 'spiralM':
-            return "spirales plastiques M";
-          case 'spiralL':
-            return "spirales plastiques L";
-          case 'doscarre':
-            return "dos carré collée";
-          case 'baguette':
-            return "baguette";
-          case 'thermocolle':
-            return "thermocollée";
+    new Vue({
+        el: '#app',
+        data: {
+            items: [],
+            current: null,
+            index: -1,
+            student: false
+        },
+        filters: {
+            price(value) {
+                return value.toFixed(2);
+            },
+            reliureRead(reliure) {
+                switch (reliure) {
+                    case 'spiralS':
+                        return "spirales plastiques S";
+                    case 'spiralM':
+                        return "spirales plastiques M";
+                    case 'spiralL':
+                        return "spirales plastiques L";
+                    case 'doscarre':
+                        return "dos carré collée";
+                    case 'baguette':
+                        return "baguette";
+                    case 'thermocolle':
+                        return "thermocollée";
+                }
+            },
+        },
+        computed: {
+            colorA4Qty() {
+                return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+            },
+            colorA4UnitPrice() {
+                let qty = this.colorA4Qty;
+                return qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38;
+            },
+            bwA4Qty() {
+                return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+            },
+            bwA4UnitPrice() {
+                let qty = this.bwA4Qty;
+                return qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10;
+            },
+            colorA3Qty() {
+                return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+            },
+            colorA3UnitPrice() {
+                let qty = this.colorA3Qty;
+                return 2 * (qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38);
+            },
+            bwA3Qty() {
+                return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
+            },
+            bwA3UnitPrice() {
+                let qty = this.bwA3Qty;
+                return 2 * (qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10);
+            },
+            reliureList() {
+                return this.items.reduce((acc, i) => {
+                    let reliure = this.getReliure(i);
+                    if (!reliure) { return acc; }
+                    if (acc[reliure]) {
+                        acc[reliure] += parseInt(i.quantity, 10);
+                    } else {
+                        acc[reliure] = parseInt(i.quantity, 10);
+                    }
+                    return acc;
+                }, {});
+            },
+            subTotal() {
+                return this.colorA4Qty * this.colorA4UnitPrice +
+                    this.bwA4Qty * this.bwA4UnitPrice +
+                    this.colorA3Qty * this.colorA3UnitPrice +
+                    this.bwA3Qty * this.bwA3UnitPrice +
+                    Object.keys(this.reliureList).reduce((acc, r) => acc + (this.reliureUnitPrice(r) * this.reliureList[r]), 0);
+            },
+            total() {
+                return this.student ? this.subTotal * 0.8 : this.subTotal;
+            }
+        },
+        methods: {
+            add() {
+                this.current = {
+                    quantity: 1,
+                    colorPages: 0,
+                    bwPages: 0,
+                    reliure: '',
+                    size: 'A4'
+                }
+                this.index = -1;
+            },
+            modify(index) {
+                this.index = index;
+                this.current = Object.assign({}, this.items[index]);
+            },
+            close() {
+                this.current = null;
+            },
+            save() {
+                if (this.index < 0) {
+                    this.items.push(this.current);
+                } else {
+                    this.items[this.index] = Object.assign({}, this.current);
+                    this.items.push({});
+                    this.items.pop();
+                }
+                this.current = null;
+            },
+            remove() {
+                if (this.index < 0) { return; }
+                this.items.splice(this.index, 1);
+                this.current = null;
+            },
+            getReliure(item) {
+                if (item.reliure != 'spiral') {
+                    return item.reliure;
+                }
+                let nbPages = parseInt(item.colorPages, 10) + parseInt(item.bwPages, 10);
+                return "spiral" + (nbPages < 50 ? 'S' : (nbPages >= 100 ? 'L' : 'M'));
+            },
+            reliureUnitPrice(reliure) {
+                switch (reliure) {
+                    case 'spiralS':
+                        return 3.5;
+                    case 'spiralM':
+                        return 4.5;
+                    case 'spiralL':
+                        return 8;
+                    case 'doscarre':
+                        return 14;
+                    case 'baguette':
+                        return 5;
+                    case 'thermocolle':
+                        return 8;
+                }
+            }
         }
-      },
-    },
-    computed: {
-      colorA4Qty() {
-        return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
-      },
-      colorA4UnitPrice() {
-        let qty = this.colorA4Qty;
-        return qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38;
-      },
-      bwA4Qty() {
-        return this.items.reduce((acc, i) => acc + (i.size === 'A4' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
-      },
-      bwA4UnitPrice() {
-        let qty = this.bwA4Qty;
-        return qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10;
-      },
-      colorA3Qty() {
-        return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.colorPages, 10) * parseInt(i.quantity, 10) : 0), 0);
-      },
-      colorA3UnitPrice() {
-        let qty = this.colorA3Qty;
-        return 2 * (qty < 51 ? 0.5 : qty < 101 ? 0.45 : 0.38);
-      },
-      bwA3Qty() {
-        return this.items.reduce((acc, i) => acc + (i.size === 'A3' ? parseInt(i.bwPages, 10) * parseInt(i.quantity, 10) : 0), 0);
-      },
-      bwA3UnitPrice() {
-        let qty = this.bwA3Qty;
-        return 2 * (qty < 11 ? 0.3 : qty < 21 ? 0.25 : qty < 51 ? 0.23 : qty < 101 ? 0.20 : qty < 201 ? 0.18 : 0.10);
-      },
-      reliureList() {
-        return this.items.reduce((acc, i) => {
-          let reliure = this.getReliure(i);
-          if (!reliure) { return acc; }
-          if (acc[reliure]) {
-            acc[reliure] += parseInt(i.quantity, 10);
-          } else {
-            acc[reliure] = parseInt(i.quantity, 10);
-          }
-          return acc;
-        }, {});
-      },
-      subTotal() {
-        return this.colorA4Qty * this.colorA4UnitPrice +
-          this.bwA4Qty * this.bwA4UnitPrice +
-          this.colorA3Qty * this.colorA3UnitPrice +
-          this.bwA3Qty * this.bwA3UnitPrice +
-          Object.keys(this.reliureList).reduce((acc, r) => acc + (this.reliureUnitPrice(r) * this.reliureList[r]), 0);
-      },
-      total() {
-        return this.student ? this.subTotal * 0.8 : this.subTotal;
-      }
-    },
-    methods: {
-      add() {
-        this.current = {
-          quantity: 1,
-          colorPages: 0,
-          bwPages: 0,
-          reliure: '',
-          size: 'A4'
-        }
-        this.index = -1;
-      },
-      modify(index) {
-        this.index = index;
-        this.current = Object.assign({}, this.items[index]);
-      },
-      close() {
-        this.current = null;
-      },
-      save() {
-        if (this.index < 0) {
-          this.items.push(this.current);
-        } else {
-          this.items[this.index] = Object.assign({}, this.current);
-          this.items.push({});
-          this.items.pop();
-        }
-        this.current = null;
-      },
-      remove() {
-        if (this.index < 0) { return; }
-        this.items.splice(this.index, 1);
-        this.current = null;
-      },
-      getReliure(item) {
-        if (item.reliure != 'spiral') {
-          return item.reliure;
-        }
-        let nbPages = parseInt(item.colorPages, 10) + parseInt(item.bwPages, 10);
-        return "spiral" + (nbPages < 50 ? 'S' : (nbPages >= 100 ? 'L' : 'M'));
-      },
-      reliureUnitPrice(reliure) {
-        switch (reliure) {
-          case 'spiralS':
-            return 3.5;
-          case 'spiralM':
-            return 4.5;
-          case 'spiralL':
-            return 8;
-          case 'doscarre':
-            return 14;
-          case 'baguette':
-            return 5;
-          case 'thermocolle':
-            return 8;
-        }
-      }
-    }
-  })
+    })
+
 </script>
 
 </html>
